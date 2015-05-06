@@ -38,6 +38,12 @@ assert.deepEqual(SParse("(a\\\"b)"), ['a\"b'], 'Escaped double quotes in symbols
 assert.deepEqual(SParse("(a\\\\b)"), ['a\\b'], 'Escaped \\ in symbols should parse as \\');
 assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols should parse as normal');
 
+assert.deepEqual(SParse("a ; here's a comment"), 'a', 'following atom');
+assert.deepEqual(SParse("(a b) ; here's a comment"), ['a', 'b'], 'comment following form');
+assert.deepEqual(SParse("(a b) ; (a comment)"), ['a', 'b'], 'comment looking like a form');
+assert.deepEqual(SParse('(a ;) \n b)'), ['a', 'b'], "Form with comment between");
+assert.deepEqual(SParse('("a ;)"\n)'), [new String('a ;)')], "No comments inside strings");
+
 var error = SParse("(\n'");
 assert(error instanceof SyntaxError, "Parsing (\\n' Should be an error");
 assert(error.line == 2, "line should be 2");
@@ -63,3 +69,6 @@ assert(error.message == "Syntax error: Unterminated string literal", error.messa
 
 assert.deepEqual(SParse('  a   '), 'a', 'Whitespace should be ignored');
 assert.deepEqual(SParse('    '), '', 'The empty expression should parse');
+
+error = SParse('(a ;)');
+assert(error instanceof SyntaxError, "Form unfinished due to comment");

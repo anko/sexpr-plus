@@ -6,8 +6,11 @@ var optWhitespace = Parsimmon.optWhitespace;
 var lazy = Parsimmon.lazy;
 var seq = Parsimmon.seq;
 var alt = Parsimmon.alt;
+var eof = Parsimmon.eof;
 
 var lexeme = function(p) { return p.skip(optWhitespace); };
+
+var comment = lexeme(string(";").then(regex(/.*/)).skip(string("\n").or(eof)));
 
 var number = lexeme(regex(/[0-9]+/).map(parseInt)).desc("number");
 
@@ -32,7 +35,9 @@ var atom = lexeme((function() {
 
 var lparen = lexeme(string('(')).desc("opening paren");
 var rparen = lexeme(string(')')).desc("closing paren");
-var expr = lazy("sexpr", function() { return alt(form, atom, quotedExpr); });
+var expr = lazy("sexpr", function() {
+    return alt(form, atom, quotedExpr);
+}).skip(comment.atMost(1));
 
 var quote  = lexeme(regex(/('|`|,@|,)/)).desc("a quote");
 var quotedExpr = quote.chain(function(quoteResult) {
