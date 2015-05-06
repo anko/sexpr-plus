@@ -1,12 +1,12 @@
 'use strict';
-var Parsimmon = require("parsimmon");
-var regex = Parsimmon.regex;
-var string = Parsimmon.string;
+var Parsimmon     = require("parsimmon");
+var regex         = Parsimmon.regex;
+var string        = Parsimmon.string;
 var optWhitespace = Parsimmon.optWhitespace;
-var lazy = Parsimmon.lazy;
-var seq = Parsimmon.seq;
-var alt = Parsimmon.alt;
-var eof = Parsimmon.eof;
+var lazy          = Parsimmon.lazy;
+var seq           = Parsimmon.seq;
+var alt           = Parsimmon.alt;
+var eof           = Parsimmon.eof;
 
 var lexeme = function(p) { return p.skip(optWhitespace); };
 
