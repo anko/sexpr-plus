@@ -22,7 +22,7 @@ var stringLiteral = lexeme((function() {
 })());
 
 var atom = lexeme((function() {
-    var escapedChar = string('\\').then(regex(/['"\\]/));
+    var escapedChar = string('\\').then(regex(/['"\\;]/));
     var legalChar = regex(/[^;\s"`,'()]/);
     var normalChar  = string('\\').atMost(1).then(legalChar);
     return normalChar.or(escapedChar).atLeast(1)

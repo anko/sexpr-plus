@@ -37,6 +37,7 @@ assert.deepEqual(SParse("(a\\'b)"), ['a\'b'], 'Escaped single quotes in symbols 
 assert.deepEqual(SParse("(a\\\"b)"), ['a\"b'], 'Escaped double quotes in symbols should parse');
 assert.deepEqual(SParse("(a\\\\b)"), ['a\\b'], 'Escaped \\ in symbols should parse as \\');
 assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols should parse as normal');
+assert.deepEqual(SParse("(a\\;b)"), ['a;b'], 'Escaped semicolon in symbols should parse');
 
 assert.deepEqual(SParse('(+ 1 2)'), [ '+', '1', '2'], "special characters work");
 
