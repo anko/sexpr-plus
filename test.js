@@ -38,6 +38,8 @@ assert.deepEqual(SParse("(a\\\"b)"), ['a\"b'], 'Escaped double quotes in symbols
 assert.deepEqual(SParse("(a\\\\b)"), ['a\\b'], 'Escaped \\ in symbols should parse as \\');
 assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols should parse as normal');
 
+assert.deepEqual(SParse('(+ 1 2)'), [ '+', '1', '2'], "special characters work");
+
 assert.deepEqual(SParse("a ; here's a comment"), 'a', 'following atom');
 assert.deepEqual(SParse("(a b) ; here's a comment"), ['a', 'b'], 'comment following form');
 assert.deepEqual(SParse("(a b) ; (a comment)"), ['a', 'b'], 'comment looking like a form');

@@ -12,8 +12,6 @@ var lexeme = function(p) { return p.skip(optWhitespace); };
 
 var comment = lexeme(string(";").then(regex(/.*/)).skip(string("\n").or(eof)));
 
-var number = lexeme(regex(/[0-9]+/).map(parseInt)).desc("number");
-
 var stringLiteral = lexeme((function() {
     var escapedChar = string("\\").then(regex(/["\\]/));
     var normalChar = string("\\").atMost(1).then(regex(/[^"\\]/));
@@ -25,11 +23,11 @@ var stringLiteral = lexeme((function() {
 
 var atom = lexeme((function() {
     var escapedChar = string('\\').then(regex(/['"\\]/));
-    var initialChar = regex(/[a-z_]/i);
-    var normalChar  = string('\\').atMost(1).then(regex(/\w/i));
-    return seq(initialChar, normalChar.or(escapedChar).many())
+    var legalChar = regex(/[^\s"`,'()]/);
+    var normalChar  = string('\\').atMost(1).then(legalChar);
+    return normalChar.or(escapedChar).atLeast(1)
         .map(function(d) {
-            return d[0] + (d[1] ? d[1].join("") : "");
+            return d.join("");
         }).desc("atom");
 })());
 
@@ -53,7 +51,7 @@ var quotedExpr = quote.chain(function(quoteResult) {
         return [ quoteMap[quoteResult] , exprResult ];
     });
 });
-var atom = number.or(atom).or(stringLiteral);
+var atom = atom.or(stringLiteral);
 var form = lparen.then(expr.many()).skip(rparen);
 
 module.exports = function(stream) {
