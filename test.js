@@ -40,7 +40,8 @@ assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols
 
 assert.deepEqual(SParse('(+ 1 2)'), [ '+', '1', '2'], "special characters work");
 
-assert.deepEqual(SParse("a ; here's a comment"), 'a', 'following atom');
+assert.deepEqual(SParse("(\n; comments\n;inside\n)"), [], 'empty list with comments inside');
+assert.deepEqual(SParse("a ; here's a comment"), 'a', 'comment following atom');
 assert.deepEqual(SParse("(a b) ; here's a comment"), ['a', 'b'], 'comment following form');
 assert.deepEqual(SParse("(a b) ; (a comment)"), ['a', 'b'], 'comment looking like a form');
 assert.deepEqual(SParse('(a ;) \n b)'), ['a', 'b'], "Form with comment between");

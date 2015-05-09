@@ -8,9 +8,9 @@ var seq           = Parsimmon.seq;
 var alt           = Parsimmon.alt;
 var eof           = Parsimmon.eof;
 
-var lexeme = function(p) { return p.skip(optWhitespace); };
+var comment = optWhitespace.then(string(";")).then(regex(/.*/)).skip(string("\n").or(eof));
 
-var comment = lexeme(string(";").then(regex(/.*/)).skip(string("\n").or(eof)));
+var lexeme = function(p) { return p.skip(comment.atLeast(1).or(optWhitespace)); };
 
 var stringLiteral = lexeme((function() {
     var escapedChar = string("\\").then(regex(/["\\]/));
@@ -23,7 +23,7 @@ var stringLiteral = lexeme((function() {
 
 var atom = lexeme((function() {
     var escapedChar = string('\\').then(regex(/['"\\]/));
-    var legalChar = regex(/[^\s"`,'()]/);
+    var legalChar = regex(/[^;\s"`,'()]/);
     var normalChar  = string('\\').atMost(1).then(legalChar);
     return normalChar.or(escapedChar).atLeast(1)
         .map(function(d) {
@@ -33,9 +33,9 @@ var atom = lexeme((function() {
 
 var lparen = lexeme(string('(')).desc("opening paren");
 var rparen = lexeme(string(')')).desc("closing paren");
-var expr = lazy("sexpr", function() {
+var expr = lexeme(lazy("sexpr", function() {
     return alt(form, atom, quotedExpr);
-}).skip(comment.atMost(1));
+}));
 
 var quote  = lexeme(regex(/('|`|,@|,)/)).desc("a quote");
 var quotedExpr = quote.chain(function(quoteResult) {
@@ -55,7 +55,7 @@ var atom = atom.or(stringLiteral);
 var form = lparen.then(expr.many()).skip(rparen);
 
 module.exports = function(stream) {
-    var s = optWhitespace.then(expr.or(optWhitespace)).parse(stream);
+    var s = optWhitespace.then(alt(expr, optWhitespace)).parse(stream);
     if (s.status) return s.value;
     else {
 
