@@ -8,7 +8,7 @@ var seq           = Parsimmon.seq;
 var alt           = Parsimmon.alt;
 var eof           = Parsimmon.eof;
 
-var comment = optWhitespace.then(string(";")).then(regex(/.*/)).skip(string("\n").or(eof));
+var comment = optWhitespace.then(string(";")).then(regex(/.*/)).skip(string("\n").or(eof)).skip(optWhitespace);
 
 var lexeme = function(p) { return p.skip(comment.atLeast(1).or(optWhitespace)); };
 

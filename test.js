@@ -41,7 +41,7 @@ assert.deepEqual(SParse("(a\\;b)"), ['a;b'], 'Escaped semicolon in symbols shoul
 
 assert.deepEqual(SParse('(+ 1 2)'), [ '+', '1', '2'], "special characters work");
 
-assert.deepEqual(SParse("(\n; comments\n;inside\n)"), [], 'empty list with comments inside');
+assert.deepEqual(SParse("(\n; comments\n;inside\n\n)"), [], 'empty list with comments inside');
 assert.deepEqual(SParse("a ; here's a comment"), 'a', 'comment following atom');
 assert.deepEqual(SParse("(a b) ; here's a comment"), ['a', 'b'], 'comment following form');
 assert.deepEqual(SParse("(a b) ; (a comment)"), ['a', 'b'], 'comment looking like a form');
