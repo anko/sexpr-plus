@@ -21,9 +21,25 @@ var stringLiteral = lexeme((function() {
         .map(function(s) { return new String(s.join("")); });
 })());
 
+var regexLiteral = lexeme((function() {
+    var escapedChar = string("\\").then(regex(/[\\\/]/));
+    var normalChar = string("\\").atMost(1).then(regex(/[^\\\/]/));
+    return string('/').desc("regex-opener")
+        .then(seq(
+            alt(normalChar, escapedChar).desc("regex content").many(),
+            string('/').desc("regex-terminator"),
+            regex(/[a-zA-Z]*/)))
+        .map(function(s) {
+            var content = s[0].join("");
+            // s[1] is just the in-between slash
+            var flags   = s[2];
+            return new RegExp(content, flags);
+        });
+})());
+
 var atom = lexeme((function() {
     var escapedChar = string('\\').then(regex(/['"\\;]/));
-    var legalChar = regex(/[^;\s"`,'()]/);
+    var legalChar = regex(/[^;\s"/`,'()]/);
     var normalChar  = string('\\').atMost(1).then(legalChar);
     return normalChar.or(escapedChar).atLeast(1)
         .map(function(d) {
@@ -51,7 +67,7 @@ var quotedExpr = quote.chain(function(quoteResult) {
         return [ quoteMap[quoteResult] , exprResult ];
     });
 });
-var atom = atom.or(stringLiteral);
+var atom = alt(stringLiteral, regexLiteral, atom);
 var form = lparen.then(expr.many()).skip(rparen);
 
 module.exports = function(stream) {
