@@ -1,28 +1,16 @@
 {
-  "name": "s-expression",
-  "version": "3.0.1",
-  "description": "s-expression parser with (un|quasi|)quoting support",
+  "name": "s-expr-plus",
+  "version": "3.0.0",
+  "description": "S-expression parser, with quoting, regexps and comments",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fwg/s-expression.git"
-  },
-  "author": {
-    "name": "Friedemann Altrock",
-    "email": "frodenius@gmail.com"
-  },
+  "repository": "anko/s-expression",
+  "author": "Anko <an@cyan.io>",
   "contributors": [
-    {
-      "name": "Matt Brennan",
-      "email": "mattyb1000@gmail.com"
-    },
-    {
-      "name": "An",
-      "email": "an@cyan.io"
-    }
+    "Friedemann Altrock <frodenius@gmail.com>",
+    "Matt Brennan <mattyb1000@gmail.com>"
   ],
   "license": "MIT",
   "dependencies": {
