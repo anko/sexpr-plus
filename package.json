@@ -9,7 +9,7 @@
   "files": [
       "index.js"
   ],
-  "repository": "anko/s-expression",
+  "repository": "anko/s-expr-plus",
   "author": "Anko <an@cyan.io>",
   "contributors": [
     "Friedemann Altrock <frodenius@gmail.com>",
