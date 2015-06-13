@@ -1,7 +1,7 @@
-# S-expression +
+# S-expression+ [![CI status](https://img.shields.io/travis/anko/s-expr-plus.svg?style=flat-square)][1]
 
 Recursive descent parser for S-expressions, with features useful for writing an
-S-expr-based programming language.  Written for [eslisp][1], but generalisable.
+S-expr-based programming language.  Written for [eslisp][2], but generalisable.
 
 -   Lists are parsed to arrays.
 -   Atoms are parsed as strings.
@@ -13,7 +13,7 @@ S-expr-based programming language.  Written for [eslisp][1], but generalisable.
 -   Supports comments, from `;` til end of line.
 -   Supports regular expression literals, in JavaScript's `/abcd/g` form.
 
-Forked from the more minimal [fwg/s-expression][2].
+Forked from the more minimal [fwg/s-expression][3].
 
 ### Examples
 
@@ -31,8 +31,9 @@ Forked from the more minimal [fwg/s-expression][2].
 
 #### License
 
-[MIT][3].
+[MIT][4].
 
-[1]: https://github.com/anko/eslisp
-[2]: https://github.com/fwg/s-expression
-[3]: LICENSE
+[1]: https://travis-ci.org/anko/s-expr-plus
+[2]: https://github.com/anko/eslisp
+[3]: https://github.com/fwg/s-expression
+[4]: LICENSE
