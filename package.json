@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node test.js"
   },
+  "files": [
+      "index.js"
+  ],
   "repository": "anko/s-expression",
   "author": "Anko <an@cyan.io>",
   "contributors": [
