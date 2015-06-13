@@ -69,7 +69,7 @@ assert(SParse('\'"string"', ['quote', new String('string')], 'A quoted string sh
 
 assert.deepEqual(SParse('(a /a/)'), ['a', new RegExp('a')], 'Regexes should parse as RegExp objects');
 assert.deepEqual(SParse('(a /a/g)'), ['a', /a/g], 'Regexes can have flags');
-assert.deepEqual(SParse('(a /\\/a/g)'), ['a', /\/a/g], 'Slashes can be escaped in regexes');
+assert.deepEqual(SParse('(a /\\/a/g)'), ['a', new RegExp("\/a", "g")], 'Slashes can be escaped in regexes');
 assert.deepEqual(SParse('(a /\\\\a/g)'), ['a', /\a/g], 'Backslashes can be escaped in regexes');
 assert.deepEqual(SParse('(a /\\\\a/g)'), ['a', /\a/g], 'Backslashes can be escaped in regexes');
 
