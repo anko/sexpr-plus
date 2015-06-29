@@ -54,6 +54,6 @@ stringChar             = [^"\\]
 
 atom = _ c:(atomChar / atomEscapedChar)+ _ { return c.join(""); }
 
-atomEscapedChar = "\\" atomCharNeedingEscape
-atomCharNeedingEscape = [;"'`,\() ]
-atomChar             = [^;"'`,\() ]
+atomEscapedChar = s:"\\" c:atomCharNeedingEscape { return c; }
+atomCharNeedingEscape = [;"'`,\\() ]
+atomChar             = [^;"'`,\\() ]

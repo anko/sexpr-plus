@@ -46,7 +46,6 @@ assert.deepEqual(SParse("(a,@b)"), ['a', ['unquote-splicing', 'b']], 'Unquote-sp
 assert.deepEqual(SParse("(a\\'b)"), ['a\'b'], 'Escaped single quotes in symbols should parse');
 assert.deepEqual(SParse("(a\\\"b)"), ['a\"b'], 'Escaped double quotes in symbols should parse');
 assert.deepEqual(SParse("(a\\\\b)"), ['a\\b'], 'Escaped \\ in symbols should parse as \\');
-assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols should parse as normal');
 assert.deepEqual(SParse("(a\\;b)"), ['a;b'], 'Escaped semicolon in symbols should parse');
 assert.deepEqual(SParse("(a\\ b)"), ['a b'], 'Escaped space in symbols should parse');
 
