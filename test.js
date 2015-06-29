@@ -2,7 +2,9 @@ var assert = require('assert');
 var sexpr = require(process.cwd() + '/');
 var SParse = function(s) {
     try {
-        return sexpr.parse(s);
+        var c = sexpr.parse(s);
+        console.log(c);
+        return c;
     } catch (e) {
         console.error(e);
         return e

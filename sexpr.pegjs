@@ -19,10 +19,11 @@
 start = _ f:form _ { return f }
 
 
+EOF = !.
 whitespace "whitespace" = ( " " / "\t" / "\n" / "\r" )+
-endOfLineComment "comment" = ";" .* "\n"
+endOfLineComment "comment" = ";" [^\n]* ("\n" / EOF)
 __ = endOfLineComment / whitespace
-_  = __?
+_  = __*
 
 
 form = it:(list / atom / string / quotedForm) { return it; }
