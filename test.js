@@ -1,6 +1,13 @@
 var assert = require('assert');
-var SParse = require(process.cwd() + '/');
-var SyntaxError = SParse.SyntaxError;
+var sexpr = require(process.cwd() + '/');
+var SParse = function(s) {
+    try {
+        return sexpr.parse(s);
+    } catch (e) {
+        console.error(e);
+    }
+}
+var SyntaxError = sexpr.SyntaxError;
 
 assert.deepEqual(SParse('((a b c)(()()))'), [['a','b','c'],[[],[]]]);
 assert.deepEqual(SParse('((a b c) (() ()))'), [['a','b','c'],[[],[]]]);
@@ -38,6 +45,7 @@ assert.deepEqual(SParse("(a\\\"b)"), ['a\"b'], 'Escaped double quotes in symbols
 assert.deepEqual(SParse("(a\\\\b)"), ['a\\b'], 'Escaped \\ in symbols should parse as \\');
 assert.deepEqual(SParse("(a\\b)"), ['ab'], 'Escaped normal characters in symbols should parse as normal');
 assert.deepEqual(SParse("(a\\;b)"), ['a;b'], 'Escaped semicolon in symbols should parse');
+assert.deepEqual(SParse("(a\\ b)"), ['a b'], 'Escaped space in symbols should parse');
 
 assert.deepEqual(SParse('(+ 1 2)'), [ '+', '1', '2'], "special characters work");
 

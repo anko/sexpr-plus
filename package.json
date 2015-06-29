@@ -4,7 +4,8 @@
   "description": "S-expression parser, with quoting, regexps and comments",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "make test",
+    "prepublish": "make"
   },
   "files": [
     "index.js"
@@ -17,6 +18,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "parsimmon": "^0.7.0"
+    "pegjs": "^0.8.0"
   }
 }
