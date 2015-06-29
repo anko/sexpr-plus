@@ -19,9 +19,8 @@
 start = _ f:form _ { return f }
 
 
-whitespace       = ( " " / "\t" / "\n" / "\r" )+
-optWhitespace    = ( " " / "\t" / "\n" / "\r" )*
-endOfLineComment = ";" .* "\n"
+whitespace "whitespace" = ( " " / "\t" / "\n" / "\r" )+
+endOfLineComment "comment" = ";" .* "\n"
 __ = endOfLineComment / whitespace
 _  = __?
 
