@@ -62,36 +62,15 @@ assert.deepEqual(SParse('("a ;)"\n)'), [new String('a ;)')], "No comments inside
 
 var error = SParse("(\n'");
 assert(error instanceof SyntaxError, "Parsing (\\n' Should be an error");
-assert(error.line == 2, "line should be 2");
-assert(error.col == 2, "col should be 2");
 
 error = SParse("(\r\n'");
 assert(error instanceof SyntaxError, "Parsing (\\r\\n' Should be an error");
-assert(error.line == 2, "line should be 2");
-assert(error.col == 2, "col should be 1");
-
-assert.deepEqual(SParse('(a "a")'), ['a', new String('a')], 'Strings should parse as String objects');
-assert.deepEqual(SParse('(a"s"b)'), ['a', new String('s'), 'b'], 'Strings should act symbol delimiting');
-assert.deepEqual(SParse('(a\\"s\\"b)'), ['a"s"b'], 'Escaped double quotes in symbols should parse');
-assert.deepEqual(SParse('(a "\\"\n")'), ['a', new String('"\n')], 'Escaped double quotes \\" should work in Strings');
-assert.deepEqual(SParse('(a "\\\\")'), ['a', new String('\\')], 'Escaped \\ should work in Strings');
-assert.deepEqual(SParse('(a "\\a")'), ['a', new String('a')], 'Escaped characters should work in Strings');
-assert(SParse('(a "string)') instanceof SyntaxError, 'Prematurely ending strings should produce an error');
-assert(SParse('\'"string"', ['quote', new String('string')], 'A quoted string should parse'));
-
-assert.deepEqual(SParse('(a /a/)'), ['a', new RegExp('a')], 'Regexes should parse as RegExp objects');
-assert.deepEqual(SParse('(\\/)'), ['/'], 'Single slashes still parse as atoms');
-assert.deepEqual(SParse('(a /a/g)'), ['a', /a/g], 'Regexes can have flags');
-assert.deepEqual(SParse('(a /\\/a/g)'), ['a', new RegExp("\/a", "g")], 'Slashes can be escaped in regexes');
-assert.deepEqual(SParse('(a /\\\\a/g)'), ['a', /\a/g], 'Backslashes can be escaped in regexes');
-assert.deepEqual(SParse('(a /\\\\a/g)'), ['a', /\a/g], 'Backslashes can be escaped in regexes');
 
 error = SParse("(\"a)");
 assert(error instanceof SyntaxError);
-assert(error.message == "Syntax error: Unterminated string literal", error.message);
 
 assert.deepEqual(SParse('  a   '), 'a', 'Whitespace should be ignored');
-assert.deepEqual(SParse('    '), '', 'The empty expression should parse');
+assert.deepEqual(SParse('    '), null, 'The empty expression should parse');
 
 error = SParse('(a ;)');
 assert(error instanceof SyntaxError, "Form unfinished due to comment");

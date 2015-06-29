@@ -16,7 +16,7 @@
   }
 }
 
-start = _ f:form _ { return f }
+start = _ f:form? _ { return f }
 
 
 EOF = !.
@@ -43,12 +43,12 @@ quote
 
 
 string =
-  _ stringDelimiter c:stringContents stringDelimiter _ { return new String(c) }
+  _ stringDelimiter c:stringContents stringDelimiter _ { return new String(c.join("")) }
 
 stringDelimiter = '"'
 stringContents = ( stringChar / stringEscapedChar )*
 
-stringEscapedChar = "\\" stringCharNeedingEscape
+stringEscapedChar = "\\" c:stringCharNeedingEscape { return c; }
 stringCharNeedingEscape = ["\\]
 stringChar             = [^"\\]
 
