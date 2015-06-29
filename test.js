@@ -10,6 +10,8 @@ var SParse = function(s) {
 }
 var SyntaxError = sexpr.SyntaxError;
 
+assert.deepEqual(SParse('a'), "a");
+assert.deepEqual(SParse('"a"'), new String("a"));
 assert.deepEqual(SParse('((a b c)(()()))'), [['a','b','c'],[[],[]]]);
 assert.deepEqual(SParse('((a b c) (() ()))'), [['a','b','c'],[[],[]]]);
 assert.deepEqual(SParse("((a 'b 'c))"), [['a',['quote','b'],['quote','c']]]);
