@@ -5,6 +5,7 @@ var SParse = function(s) {
         return sexpr.parse(s);
     } catch (e) {
         console.error(e);
+        return e
     }
 }
 var SyntaxError = sexpr.SyntaxError;

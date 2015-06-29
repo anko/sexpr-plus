@@ -16,7 +16,7 @@
   }
 }
 
-start = form
+start = _ f:form _ { return f }
 
 
 whitespace       = ( " " / "\t" / "\n" / "\r" )+
@@ -26,12 +26,20 @@ __ = endOfLineComment / whitespace
 _  = __?
 
 
-form = _ it:(list / atom / string) _ { return it; }
+form = it:(list / atom / string / quotedForm) { return it; }
+
+quotedForm = q:quote f:form { return [ q, f ] }
 
 
 list = _ "(" _ c:listContents _ ")" _ { return c; }
 listContents "list contents"
   = first:form? rest:( _ form )* { return buildList(first, rest, 1); }
+
+quote
+  = "'"  { return "quote" }
+  / "`"  { return "quasiquote" }
+  / ",@" { return "unquote-splicing" }
+  / ","  { return "unquote" }
 
 
 string =
