@@ -5,8 +5,8 @@ all: index.js
 index.js: sexpr.pegjs
 	pegjs < $< > $@
 
-test: all test.js
-	node test.js
+test: all test.ls
+	lsc test.ls
 
 clean:
 	rm -f index.js
