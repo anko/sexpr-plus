@@ -11,7 +11,6 @@ S-expr-based programming language.  Written for [eslisp][2], but generalisable.
 -   Supports quote, quasiquote, unquote and unquote-splicing, with `'`, `` `
     ``, `,` and `,@`.
 -   Supports comments, from `;` til end of line.
--   Supports regular expression literals, in JavaScript's `/abcd/g` form.
 
 Forked from the more minimal [fwg/s-expression][3].
 
