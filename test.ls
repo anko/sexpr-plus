@@ -1,4 +1,4 @@
-sexpr = require \.
+sexpr = require \./index.js
 { parse } = sexpr
 
 test = (name, func) ->
