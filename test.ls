@@ -18,6 +18,8 @@ to = (input, output, description) -->
 '((a b c)(()()))'   `to` [[\a \b \c] [[] []]] <| "nested lists"
 '((a b c) (() ()))' `to` [[\a \b \c] [[] []]] <| "nested lists with spacing"
 
+'(a\nb)' `to` [\a \b] <| "newlines are not part of atoms"
+
 [ [\' \quote] [\` \quasiquote] [\, \unquote] [\,@ \unquote-splicing] ]
   .for-each ([c, name]) ->
     "#{c}a"      `to` [name, \a]              <| "#name'd atom"
@@ -36,8 +38,14 @@ test "stuff after the end is an error" ->
   [ "()" "a" ")" ].for-each ~> (-> parse "()#it") `@throws` sexpr.SyntaxError
 
 
-[ \' \` \" \; \\ " " '"' ] .for-each (c) ->
-    "a\\#{c}b" `to` "a#{c}b" <| "escaped #c in an atom should parse"
+char-escape = ->
+  | \\n => "\\n"
+  | \\t => "\\t"
+  | \\r => "\\r"
+
+[ \' \` \" \; \\ " " '"' "\n" "\t" ] .for-each (c) ->
+  "a\\#{c}b" `to` "a#{c}b"
+    <| "escaped #{char-escape c} in an atom should parse"
 
 test "special characters work" ->
   <[ + / * £ $ % ^ & あ ]>.for-each ->
