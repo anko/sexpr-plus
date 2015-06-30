@@ -14,19 +14,37 @@ S-expr-based programming language.  Written for [eslisp][2], but generalisable.
 
 Forked from the more minimal [fwg/s-expression][3].
 
-### Examples
+### Usage
 
-    var Parse = require('s-expr-plus');
+<!-- !test program
+awk '{ print "console.dir(" $0 ");" }' \
+| sed '1s:^:var p = require("./index.js").parse;:' \
+| node \
+| head -c -1
+-->
 
-    console.log(Parse('a')); // 'a'
-    console.log(Parse('a ; comment')); // 'a'
-    console.log(Parse("'a")); // ['quote', 'a']
-    console.log(Parse('()')); // []
-    console.log(Parse('(a b c)')); // ['a', 'b', 'c']
-    console.log(Parse("(a 'b 'c)")); // ['a', ['quote' 'b'], ['quote', 'c']]
-    console.log(Parse("(a '(b c))")); // ['a', ['quote', ['b', 'c']]]
-    console.log(Parse("(a `(b ,c))")); // ['a', ['quasiquote', ['b', ['unquote', 'c']]]]
-    console.log(Parse("(a `(b ,@c))")); // ['a', ['quasiquote', ['b', ['unquote-splicing', 'c']]]]
+`var p = require("s-expr-plus").parse;`, then
+
+<!-- !test in 1 -->
+
+    p('')
+    p('a')
+    p('a ; comment')
+    p("()")
+    p("(a b c)")
+    p("'a")
+    p("`(a ,b ,@c)")
+
+<!-- !test out 1 -->
+
+    null
+    'a'
+    'a'
+    []
+    [ 'a', 'b', 'c' ]
+    [ 'quote', 'a' ]
+    [ 'quasiquote',
+      [ 'a', [ 'unquote', 'b' ], [ 'unquote-splicing', 'c' ] ] ]
 
 #### License
 
