@@ -2,7 +2,7 @@ export PATH := node_modules/.bin:$(PATH)
 
 all: index.js
 
-index.js: sexpr.pegjs
+index.js: grammar.pegjs
 	pegjs < $< > $@
 
 test: all test.ls
