@@ -1,4 +1,4 @@
-# S-expression+ [![CI status](https://img.shields.io/travis/anko/s-expr-plus.svg?style=flat-square)][1]
+# S-expression+ [![CI status](https://img.shields.io/travis/anko/sexpr-plus.svg?style=flat-square)][1]
 
 Recursive descent parser for S-expressions, with features useful for writing an
 S-expr-based programming language.  Written for [eslisp][2], but generalisable.
@@ -23,7 +23,7 @@ awk '{ print "console.dir(" $0 ");" }' \
 | head -c -1
 -->
 
-`var p = require("s-expr-plus").parse;`, then
+`var p = require("sexpr-plus").parse;`, then
 
 <!-- !test in 1 -->
 
@@ -50,7 +50,7 @@ awk '{ print "console.dir(" $0 ");" }' \
 
 [MIT][4].
 
-[1]: https://travis-ci.org/anko/s-expr-plus
+[1]: https://travis-ci.org/anko/sexpr-plus
 [2]: https://github.com/anko/eslisp
 [3]: https://github.com/fwg/s-expression
 [4]: LICENSE

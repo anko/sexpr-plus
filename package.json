@@ -1,5 +1,5 @@
 {
-  "name": "s-expr-plus",
+  "name": "sexpr-plus",
   "version": "5.0.0",
   "description": "S-expression parser, with quoting, regexps and comments",
   "main": "index.js",
