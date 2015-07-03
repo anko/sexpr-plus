@@ -46,12 +46,25 @@ string =
   _ stringDelimiter c:stringContents stringDelimiter _ { return new String(c.join("")) }
 
 stringDelimiter = '"'
-stringContents = ( stringChar / stringEscapedChar )*
+stringContents = ( stringChar / stringEscapedChar / stringEscapedSpecialChar )*
 
 stringEscapedChar = "\\" c:stringCharNeedingEscape { return c; }
 stringCharNeedingEscape = ["\\]
 stringChar             = [^"\\]
 
+/* JavaScript's single-character escape sequences */
+stringEscapedSpecialCharLetter = [bfnrtv0]
+stringEscapedSpecialChar = "\\" c:stringEscapedSpecialCharLetter {
+  switch(c) {
+    case "b": return "\b";
+    case "f": return "\f";
+    case "n": return "\n";
+    case "r": return "\r";
+    case "t": return "\t";
+    case "v": return "\v";
+    case "0": return "\0";
+  }
+}
 
 atom = _ c:(atomChar / atomEscapedChar)+ _ { return c.join(""); }
 
