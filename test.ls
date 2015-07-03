@@ -39,9 +39,11 @@ test "stuff after the end is an error" ->
 
 
 char-escape = ->
+  switch it
   | \\n => "\\n"
   | \\t => "\\t"
   | \\r => "\\r"
+  | _   => it
 
 [ \' \` \" \; \\ " " '"' "\n" "\t" ] .for-each (c) ->
   "a\\#{c}b" `to` "a#{c}b"
