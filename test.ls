@@ -49,6 +49,10 @@ char-escape = ->
   "a\\#{c}b" `to` "a#{c}b"
     <| "escaped #{char-escape c} in an atom should parse"
 
+[ \" "\\" ] .for-each (c) ->
+  "\"a\\#{c}b\"" `to` new String "a#{c}b"
+    <| "escaped #{char-escape c} in a string should parse"
+
 test "special characters work" ->
   <[ + / * £ $ % ^ & あ ]>.for-each ->
     it `to` it <| "special character #it works as atom"
