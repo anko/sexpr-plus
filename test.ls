@@ -37,7 +37,6 @@ to = (input, output, description) -->
 test "stuff after the end is an error" ->
   [ "()" "a" ")" ].for-each ~> (-> parse "()#it") `@throws` sexpr.SyntaxError
 
-
 char-escape = ->
   switch it
   | \\n => "\\n"
