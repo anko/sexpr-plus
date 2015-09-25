@@ -19,9 +19,22 @@ convert = ->
   | otherwise =>
     throw Error "Test error; invalid convenience template (got #that)"
 
+delete-location-data = ->
+  if it is null then return it
+
+  delete it.location
+  if it.type is \list then it.content.for-each delete-location-data
+  return it
+
 to = (input, output, description) -->
+
   output = convert output
-  test description, -> input |> parse |> @deep-equals _, output
+
+  test description, ->
+    input
+    |> parse
+    |> delete-location-data
+    |> @deep-equals _, output
 
 #
 # Basics
@@ -96,6 +109,133 @@ test "special characters work" ->
 ";(a comment)" `to` null  <| "comment looking like a form"
 "(a ;)\nb)" `to` [\a \b]  <| "form with close-paren-looking comment between"
 '("a ;)"\n)' `to` [new String "a ;)"] <| "can't start comment in string"
+
+#
+# Location information
+#
+
+test "lone atom loc is correct" ->
+  parse "hi"
+    ..type `@equals` \atom
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 2
+        ..line   `@equals` 1
+        ..column `@equals` 3
+
+test "single-line string loc is correct" ->
+  parse '"hi"'
+    ..type `@equals` \string
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 4
+        ..line   `@equals` 1
+        ..column `@equals` 5
+
+test "multi-line string loc is correct" ->
+  parse '"hi\nthere"'
+    ..type `@equals` \string
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 10
+        ..line   `@equals` 2
+        ..column `@equals` 7
+
+test "string containing escapes has correct loc" ->
+  parse '"\\n\\t"'
+    ..type `@equals` \string
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 6
+        ..line   `@equals` 1
+        ..column `@equals` 7
+
+test "empty list loc is correct" ->
+  parse '()'
+    ..type `@equals` \list
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 2
+        ..line   `@equals` 1
+        ..column `@equals` 3
+
+test "2-element list loc is correct" ->
+  parse '(a b)'
+    ..type `@equals` \list
+    ..location
+      ..start
+        ..offset `@equals` 0
+        ..line   `@equals` 1
+        ..column `@equals` 1
+      ..end
+        ..offset `@equals` 5
+        ..line   `@equals` 1
+        ..column `@equals` 6
+
+test "2-element list content loc is correct" ->
+  parse '(a b)'
+    ..type `@equals` \list
+    ..content
+      ..0
+        ..type `@equals` \atom
+        ..location
+          ..start
+            ..offset `@equals` 1
+            ..line   `@equals` 1
+            ..column `@equals` 2
+          ..end
+            ..offset `@equals` 2
+            ..line   `@equals` 1
+            ..column `@equals` 3
+      ..1
+        ..type `@equals` \atom
+        ..location
+          ..start
+            ..offset `@equals` 3
+            ..line   `@equals` 1
+            ..column `@equals` 4
+          ..end
+            ..offset `@equals` 4
+            ..line   `@equals` 1
+            ..column `@equals` 5
+
+test "quote atom loc matches that of the quote character" ->
+  [ [\' \quote] [\` \quasiquote] [\, \unquote] [\,@ \unquote-splicing] ]
+    .for-each ([c, name]) ~>
+      parse "#{c}a"
+        ..type `@equals` \list
+        ..content.0
+          ..type `@equals` \atom
+          ..content `@equals` name
+          ..location
+            ..start
+              ..offset `@equals` 0
+              ..line   `@equals` 1
+              ..column `@equals` 1
+            ..end
+              ..offset `@equals` c.length
+              ..line   `@equals` 1
+              ..column `@equals` (1 + c.length)
 
 #
 # Form errors

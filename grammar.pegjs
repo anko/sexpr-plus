@@ -15,24 +15,27 @@
     return (first !== null ? [first] : []) .concat(extractList(rest, index));
   }
 
-  function outputString(content) {
+  function outputString(content, loc) {
     return {
       type : "string",
-      content : content
+      content : content,
+      location : loc
     };
   }
 
-  function outputAtom(content) {
+  function outputAtom(content, loc) {
     return {
       type : "atom",
-      content : content
+      content : content,
+      location : loc
     };
   }
 
-  function outputList(content) {
+  function outputList(content, loc) {
     return {
       type : "list",
-      content : content
+      content : content,
+      location : loc
     };
   }
 }
@@ -49,22 +52,24 @@ _  = __*
 
 form = it:(list / atom / string / quotedForm) { return it; }
 
-quotedForm = q:quote f:form { return outputList([ q, f ]) }
+quotedForm = q:quote f:form { return outputList([ q, f ], location()) }
 
 
-list = _ "(" _ c:listContents _ ")" _ { return c; }
+list = _ "(" _ c:listContents _ ")" _ { return outputList(c, location()); }
 listContents "list contents"
-  = first:form? rest:( _ form )* { return outputList(buildList(first, rest, 1)); }
+  = first:form? rest:( _ form )* { return buildList(first, rest, 1) }
 
 quote
-  = "'"  { return outputAtom("quote") }
-  / "`"  { return outputAtom("quasiquote") }
-  / ",@" { return outputAtom("unquote-splicing") }
-  / ","  { return outputAtom("unquote") }
+  = "'"  { return outputAtom("quote", location()) }
+  / "`"  { return outputAtom("quasiquote", location()) }
+  / ",@" { return outputAtom("unquote-splicing", location()) }
+  / ","  { return outputAtom("unquote", location()) }
 
 
 string =
-  _ stringDelimiter c:stringContents stringDelimiter _ { return outputString(c.join("")) }
+  _ stringDelimiter c:stringContents stringDelimiter _ {
+    return outputString(c.join(""), location())
+  }
 
 stringDelimiter = '"'
 stringContents = ( stringChar / stringEscapedChar / stringEscapedSpecialChar )*
@@ -87,7 +92,13 @@ stringEscapedSpecialChar = "\\" c:stringEscapedSpecialCharLetter {
   }
 }
 
-atom = _ c:(atomChar / atomEscapedChar)+ _ { return outputAtom(c.join("")); }
+atom = _ c:atomContents _ {
+  return c;
+}
+
+atomContents = c:( atomChar / atomEscapedChar )+ {
+  return outputAtom(c.join(""), location());
+}
 
 atomEscapedChar = s:"\\" c:atomCharNeedingEscape { return c; }
 atomCharNeedingEscape = [;"'`,\\()\n\t\r ]
