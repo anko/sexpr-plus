@@ -6,7 +6,21 @@ test = (name, func) ->
     func.call t   # Make `this` refer to tape's asserts
     t.end!        # Automatically end tests
 
+# Because writing out all the '{ type : \list content : [ ... ]  }' stuff would
+# be boring and unreadable, here's a dead simple DSL for simplifying that.
+convert = ->
+  switch typeof! it
+  | \Null   => null
+  | \Array  => type : \list content : it.map convert
+  | \String =>
+    if it instanceof Object then type : \string content : it.to-string!
+                            else type : \atom   content : it
+
+  | otherwise =>
+    throw Error "Test error; invalid convenience template (got #that)"
+
 to = (input, output, description) -->
+  output = convert output
   test description, -> input |> parse |> @deep-equals _, output
 
 ''    `to` null          <| "empty input"

@@ -12,7 +12,28 @@
   }
 
   function buildList(first, rest, index) {
-    return (first !== null ? [first] : []).concat(extractList(rest, index));
+    return (first !== null ? [first] : []) .concat(extractList(rest, index));
+  }
+
+  function outputString(content) {
+    return {
+      type : "string",
+      content : content
+    };
+  }
+
+  function outputAtom(content) {
+    return {
+      type : "atom",
+      content : content
+    };
+  }
+
+  function outputList(content) {
+    return {
+      type : "list",
+      content : content
+    };
   }
 }
 
@@ -28,22 +49,22 @@ _  = __*
 
 form = it:(list / atom / string / quotedForm) { return it; }
 
-quotedForm = q:quote f:form { return [ q, f ] }
+quotedForm = q:quote f:form { return outputList([ q, f ]) }
 
 
 list = _ "(" _ c:listContents _ ")" _ { return c; }
 listContents "list contents"
-  = first:form? rest:( _ form )* { return buildList(first, rest, 1); }
+  = first:form? rest:( _ form )* { return outputList(buildList(first, rest, 1)); }
 
 quote
-  = "'"  { return "quote" }
-  / "`"  { return "quasiquote" }
-  / ",@" { return "unquote-splicing" }
-  / ","  { return "unquote" }
+  = "'"  { return outputAtom("quote") }
+  / "`"  { return outputAtom("quasiquote") }
+  / ",@" { return outputAtom("unquote-splicing") }
+  / ","  { return outputAtom("unquote") }
 
 
 string =
-  _ stringDelimiter c:stringContents stringDelimiter _ { return new String(c.join("")) }
+  _ stringDelimiter c:stringContents stringDelimiter _ { return outputString(c.join("")) }
 
 stringDelimiter = '"'
 stringContents = ( stringChar / stringEscapedChar / stringEscapedSpecialChar )*
@@ -66,7 +87,7 @@ stringEscapedSpecialChar = "\\" c:stringEscapedSpecialCharLetter {
   }
 }
 
-atom = _ c:(atomChar / atomEscapedChar)+ _ { return c.join(""); }
+atom = _ c:(atomChar / atomEscapedChar)+ _ { return outputAtom(c.join("")); }
 
 atomEscapedChar = s:"\\" c:atomCharNeedingEscape { return c; }
 atomCharNeedingEscape = [;"'`,\\()\n\t\r ]
