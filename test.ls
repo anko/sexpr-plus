@@ -23,6 +23,10 @@ to = (input, output, description) -->
   output = convert output
   test description, -> input |> parse |> @deep-equals _, output
 
+#
+# Basics
+#
+
 ''    `to` null          <| "empty input"
 ' \t' `to` null          <| "empty input (just whitespace)"
 'a'   `to` \a            <| "atom"
@@ -33,6 +37,10 @@ to = (input, output, description) -->
 '((a b c) (() ()))' `to` [[\a \b \c] [[] []]] <| "nested lists with spacing"
 
 '(a\nb)' `to` [\a \b] <| "newlines are not part of atoms"
+
+#
+# Quoting operators
+#
 
 [ [\' \quote] [\` \quasiquote] [\, \unquote] [\,@ \unquote-splicing] ]
   .for-each ([c, name]) ->
@@ -48,8 +56,9 @@ to = (input, output, description) -->
     test "#name with nothing to apply to is an error" ->
       (-> parse "(#c)") `@throws` sexpr.SyntaxError
 
-test "stuff after the end is an error" ->
-  [ "()" "a" ")" ].for-each ~> (-> parse "()#it") `@throws` sexpr.SyntaxError
+#
+# Special characters and escaping
+#
 
 char-escape = ->
   switch it
@@ -75,6 +84,10 @@ test "special characters work" ->
   <[ + / * £ $ % ^ & あ ]>.for-each ->
     it `to` it <| "special character #it works as atom"
 
+#
+# Comments
+#
+
 ";hi" `to` null           <| "only 1 comment"
 ";hi\n;yo" `to` null      <| "only comments"
 "(\n; a\n;b\n\n)" `to` [] <| "empty list with comments inside"
@@ -84,8 +97,16 @@ test "special characters work" ->
 "(a ;)\nb)" `to` [\a \b]  <| "form with close-paren-looking comment between"
 '("a ;)"\n)' `to` [new String "a ;)"] <| "can't start comment in string"
 
+#
+# Form errors
+#
+
+test "stuff after the end is an error" ->
+  [ "()" "a" ")" ].for-each ~> (-> parse "()#it") `@throws` sexpr.SyntaxError
+
 test "incomplete string is an error" ->
   (-> parse '"a') `@throws` sexpr.SyntaxError
 
 test "incomplete form due to comment is an error" ->
   (-> parse '(a;)') `@throws` sexpr.SyntaxError
+
