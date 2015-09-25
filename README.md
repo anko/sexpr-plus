@@ -1,7 +1,7 @@
-# S-expression+ [![CI status](https://img.shields.io/travis/anko/sexpr-plus.svg?style=flat-square)][1]
+# sexpr-plus [![npm package](https://img.shields.io/npm/v/sexpr-plus.svg?style=flat-square)][1] [![CI status](https://img.shields.io/travis/anko/sexpr-plus.svg?style=flat-square)][2]
 
 Recursive descent parser for S-expressions, with features useful for writing an
-S-expr-based programming language.  Written for [eslisp][2], but generalisable.
+S-expr-based programming language.  Written for [eslisp][3], but generalisable.
 
 Outputs objects, or null for empty input.
 
@@ -14,7 +14,7 @@ Outputs objects, or null for empty input.
     ``, `,` and `,@`.  They're turned into the appropriate atoms.
 -   Comments are from `;` til end of line.  They are not present in the output.
 
-Forked from the more minimal [fwg/s-expression][3].
+Forked from the more minimal [fwg/s-expression][4].
 
 ## Node locations
 
@@ -34,9 +34,7 @@ messages.
 
 ## Usage
 
-```
-npm i sexpr-plus
-```
+    npm i sexpr-plus
 
 ```js
 var parse = require("sexpr-plus").parse;
@@ -50,9 +48,10 @@ If you need to catch and distinguish between different types of `Error` with
 
 ## License
 
-[MIT][4].
+[MIT][5].
 
-[1]: https://travis-ci.org/anko/sexpr-plus
-[2]: https://github.com/anko/eslisp
-[3]: https://github.com/fwg/s-expression
-[4]: LICENSE
+[1]: https://www.npmjs.com/package/sexpr-plus
+[2]: https://travis-ci.org/anko/sexpr-plus
+[3]: https://github.com/anko/eslisp
+[4]: https://github.com/fwg/s-expression
+[5]: LICENSE
