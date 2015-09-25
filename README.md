@@ -3,154 +3,52 @@
 Recursive descent parser for S-expressions, with features useful for writing an
 S-expr-based programming language.  Written for [eslisp][2], but generalisable.
 
-Outputs an object, or null for empty input.
+Outputs objects, or null for empty input.
 
--   Lists are parsed to `{ type: "list", content: [ ... ] }`.
+-   Lists are parsed to `{ type: "list", content: [ <other objects>... ] }`.
 -   Atoms are parsed to `{ type: "atom", content: "<atomName>" }`.
 -   Strings (delimited with `"`s) are parsed to `{ type: "string", content:
     "<atomName>" }`.  They support the same escape sequences as JavaScript
     strings: `\"`, `\\`, `\n`, `\r`, `\t`, `\f`, and `\b`.
 -   Supports quote, quasiquote, unquote and unquote-splicing, with `'`, `` `
     ``, `,` and `,@`.  They're turned into the appropriate atoms.
--   Comments are from `;` til end of line.  They are not present in output.
+-   Comments are from `;` til end of line.  They are not present in the output.
 
 Forked from the more minimal [fwg/s-expression][3].
 
-### Usage
+## Node locations
 
-<!-- !test program
-awk '{ print "console.log(JSON.stringify(" $0 ", null, 2));" }' \
-| sed '1s:^:var p = require("./index.js").parse;:' \
-| node \
-| head -c -1
--->
+All output nodes also have a `location` property, showing where in the input
+that node originated:
 
-`var p = require("sexpr-plus").parse;`, then
+    {
+        start : { offset, line, column },
+        end : { offset, line, column }
+    }
 
-<!-- !test in basics -->
+All are integers: `offset` is the number of characters since the input, `line`
+and `column` are 1-based and self-explanatory.
+
+These may be handy for constructing source maps or showing more detailed error
+messages.
+
+## Usage
+
+```
+npm i sexpr-plus
+```
 
 ```js
-p('')
-p('; comment')
-p('a')
-p('"i am a string"')
-p('()')
-p('(a b)')
+var parse = require("sexpr-plus").parse;
 ```
 
-<!-- !test out basics -->
+Call `parse` with a string containing code to parse.
 
-```json
-null
-null
-{
-  "type": "atom",
-  "content": "a"
-}
-{
-  "type": "string",
-  "content": "i am a string"
-}
-{
-  "type": "list",
-  "content": []
-}
-{
-  "type": "list",
-  "content": [
-    {
-      "type": "atom",
-      "content": "a"
-    },
-    {
-      "type": "atom",
-      "content": "b"
-    }
-  ]
-}
-```
+If you need to catch and distinguish between different types of `Error` with
+`instanceof` while parsing, the syntax error prototype is available at
+`require("sexpr-plus").SyntaxError`.
 
-The quoting operators become atoms of the appropriate name:
-
-<!-- !test in basic quoting -->
-
-```js
-p("'a")
-```
-
-<!-- !test out basic quoting -->
-
-```json
-{
-  "type": "list",
-  "content": [
-    {
-      "type": "atom",
-      "content": "quote"
-    },
-    {
-      "type": "atom",
-      "content": "a"
-    }
-  ]
-}
-```
-
-<!-- !test in quoting -->
-
-
-```js
-p("`(,a ,@b)")
-```
-
-<!-- !test out quoting -->
-
-```json
-{
-  "type": "list",
-  "content": [
-    {
-      "type": "atom",
-      "content": "quasiquote"
-    },
-    {
-      "type": "list",
-      "content": [
-        {
-          "type": "list",
-          "content": [
-            {
-              "type": "atom",
-              "content": "unquote"
-            },
-            {
-              "type": "atom",
-              "content": "a"
-            }
-          ]
-        },
-        {
-          "type": "list",
-          "content": [
-            {
-              "type": "atom",
-              "content": "unquote-splicing"
-            },
-            {
-              "type": "atom",
-              "content": "b"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-Comments are (currently) not exposed in the output.
-
-#### License
+## License
 
 [MIT][4].
 
