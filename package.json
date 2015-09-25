@@ -10,11 +10,16 @@
   "files": [
     "index.js"
   ],
-  "repository": "anko/s-expr-plus",
+  "repository": "anko/sexpr-plus",
+  "bugs": "https://github.com/anko/sexpr-plus/issues",
   "author": "Anko <an@cyan.io>",
   "contributors": [
     "Friedemann Altrock <frodenius@gmail.com>",
     "Matt Brennan <mattyb1000@gmail.com>"
+  ],
+  "keywords": [
+     "s-expression",
+     "parser"
   ],
   "license": "MIT",
   "dependencies": {},
