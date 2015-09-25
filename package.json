@@ -1,6 +1,6 @@
 {
   "name": "sexpr-plus",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "S-expression parser, with quoting and comments",
   "main": "index.js",
   "scripts": {
@@ -18,8 +18,8 @@
     "Matt Brennan <mattyb1000@gmail.com>"
   ],
   "keywords": [
-     "s-expression",
-     "parser"
+    "s-expression",
+    "parser"
   ],
   "license": "MIT",
   "dependencies": {},
