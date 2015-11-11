@@ -60,6 +60,11 @@ to = (input, output, description) -->
 '(a b)(a b)' `to` [[\a \b] [\a \b]] <| "multiple forms"
 '()( )(\n)' `to` [[] [] []] <| "multiple empty forms"
 
+'#!/bin/sh' `to` []            <| "lone shebang line ignored"
+'#!' `to` []                   <| "lone empty shebang line ignored"
+'\n#!sh' `to` [ "#!sh" ]       <| "shebang line not at beginning is atom"
+'#!/bin/sh\n(a)' `to` [[ \a ]] <| "shebang line followed by form"
+
 #
 # Quoting operators
 #

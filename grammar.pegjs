@@ -40,8 +40,9 @@
   }
 }
 
-start = _ f:form* _ { return f }
+start = shebangLine? _ f:form* _ { return f }
 
+shebangLine "initial shebang ('#!') line" = "#!" [^\n]* ("\n" / EOF)
 
 EOF = !.
 whitespace "whitespace" = ( " " / "\t" / "\n" / "\r" )+
