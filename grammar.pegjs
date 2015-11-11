@@ -40,7 +40,7 @@
   }
 }
 
-start = _ f:form? _ { return f }
+start = _ f:form* _ { return f }
 
 
 EOF = !.
