@@ -1,7 +1,7 @@
 export PATH := node_modules/.bin:$(PATH)
 
-index.js: grammar.pegjs
-	pegjs < $< > $@
+index.js: parser.ls
+	lsc -cp $< > $@
 
 test: index.js test.ls
 	lsc test.ls

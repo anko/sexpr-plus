@@ -1,23 +1,22 @@
-sexpr = require \./index.js
-{ parse } = sexpr
+require! {
+  tape
+  './parser.ls': {parse}: sexpr
+}
 
 test = (name, func) ->
-  (require \tape) name, (t) ->
+  tape name, (t) ->
     func.call t   # Make `this` refer to tape's asserts
     t.end!        # Automatically end tests
 
 # Because writing out all the '{ type : \list content : [ ... ]  }' stuff would
 # be boring and unreadable, here's a dead simple DSL for simplifying that.
 convert = ->
-  switch typeof! it
-  | \Null   => null
-  | \Array  => type : \list content : it.map convert
-  | \String =>
-    if it instanceof Object then type : \string content : it.to-string!
-                            else type : \atom   content : it
-
+  | not it? => null
+  | Array.isArray it => type : \list content : it.map convert
+  | typeof it == \string => type : \atom   content : it
+  | it instanceof String => type : \string content : it.to-string!
   | otherwise =>
-    throw Error "Test error; invalid convenience template (got #that)"
+    throw Error "Test error; invalid convenience template (got #it)"
 
 delete-location-data = ->
   if it is null then return it
@@ -27,9 +26,7 @@ delete-location-data = ->
   return it
 
 to = (input, output, description) -->
-
   output = convert output
-
   test description, ->
     input
     |> parse
@@ -51,11 +48,116 @@ to = (input, output, description) -->
 
 '(a\nb)' `to` [\a \b] <| "newlines are not part of atoms"
 
+# String/atom hex escapes
+
+hex = [[x, +x] for x in '123456789'] ++
+  [[x, i + 10] for x, i in 'abcdef'] ++
+  [[x, i + 10] for x, i in 'ABCDEF']
+
+test 'ascii escapes work with atoms' ->
+  esc = (x, y) ~>
+    @deep-equals do
+      (delete-location-data parse x)
+      {type : \atom content : String.from-char-code y}
+      "`#x`"
+
+  '\\x00' `esc` 0
+
+  for [l, c] in hex
+    "\\x0#{l}" `esc` (c)
+    "\\x#{l}0" `esc` (c * 0x10)
+    "\\x1#{l}" `esc` (0x10 + c)
+    "\\x#{l}1" `esc` (c * 0x10 + 1)
+    "\\x#{l}f" `esc` (c * 0x10 + 15)
+
+test 'unicode escapes work with atoms' ->
+  esc = (x, y) ~>
+    @deep-equals do
+      (delete-location-data parse x)
+      {type : \atom content : String.from-char-code y}
+      "`#x`"
+
+  '\\u0000' `esc` 0
+
+  for [l, c] in hex
+    "\\u000#{l}" `esc` (c)
+    "\\u00#{l}0" `esc` (c * 0x10)
+    "\\u0#{l}00" `esc` (c * 0x100)
+    "\\u#{l}000" `esc` (c * 0x1000)
+    "\\u001#{l}" `esc` (0x10 + c)
+    "\\u011#{l}" `esc` (0x110 + c)
+    "\\u111#{l}" `esc` (0x1110 + c)
+    "\\ufff#{l}" `esc` (0xfff0 + c)
+    "\\uFFF#{l}" `esc` (0xFFF0 + c)
+
+test 'ascii escapes work with strings' ->
+  esc = (x, y) ~>
+    @deep-equals do
+      (delete-location-data parse "\"#x\"")
+      {type : \string content : String.from-char-code y}
+      "`\"#x\"`"
+
+  '\\x00' `esc` 0
+
+  for [l, c] in hex
+    "\\x0#{l}" `esc` (c)
+    "\\x#{l}0" `esc` (c * 0x10)
+    "\\x1#{l}" `esc` (0x10 + c)
+    "\\x#{l}1" `esc` (c * 0x10 + 1)
+    "\\x#{l}f" `esc` (c * 0x10 + 15)
+
+test 'unicode escapes work with strings' ->
+  esc = (x, y) ~>
+    @deep-equals do
+      (delete-location-data parse "\"#x\"")
+      {type : \string content : String.from-char-code y}
+      "`\"#x\"`"
+
+  '\\u0000' `esc` 0
+
+  for [l, c] in hex
+    "\\u000#{l}" `esc` (c)
+    "\\u00#{l}0" `esc` (c * 0x10)
+    "\\u0#{l}00" `esc` (c * 0x100)
+    "\\u#{l}000" `esc` (c * 0x1000)
+    "\\u001#{l}" `esc` (0x10 + c)
+    "\\u011#{l}" `esc` (0x110 + c)
+    "\\u111#{l}" `esc` (0x1110 + c)
+    "\\ufff#{l}" `esc` (0xfff0 + c)
+    "\\uFFF#{l}" `esc` (0xFFF0 + c)
+
+test 'Unicode brace escapes work with strings' ->
+  esc = (x, y) ~>
+    @deep-equals do
+      (delete-location-data parse "\"#x\"")
+      {type : \string content : String.from-char-code y}
+      "`\"#x\"`"
+
+  '\\u0000' `esc` 0
+
+  for [l, c] in hex
+    "\\u{#{l}}" `esc` (c)
+    "\\u{#{l}0}" `esc` (c * 0x10)
+    "\\u{#{l}00}" `esc` (c * 0x100)
+    "\\u{1#{l}}" `esc` (0x10 + c)
+    "\\u{11#{l}}" `esc` (0x110 + c)
+    "\\u{ff#{l}}" `esc` (0xff0 + c)
+    "\\u{FF#{l}}" `esc` (0xFF0 + c)
+    "\\u{000#{l}}" `esc` (c)
+    "\\u{00#{l}0}" `esc` (c * 0x10)
+    "\\u{0#{l}00}" `esc` (c * 0x100)
+    "\\u{#{l}000}" `esc` (c * 0x1000)
+    "\\u{001#{l}}" `esc` (0x10 + c)
+    "\\u{011#{l}}" `esc` (0x110 + c)
+    "\\u{111#{l}}" `esc` (0x1110 + c)
+    "\\u{fff#{l}}" `esc` (0xfff0 + c)
+    "\\u{FFF#{l}}" `esc` (0xFFF0 + c)
+
 #
 # Quoting operators
 #
 
-[ [\' \quote] [\` \quasiquote] [\, \unquote] [\,@ \unquote-splicing] ]
+[ <[' quote]> <[` quasiquote]> <[, unquote]> <[,@ unquote-splicing]> ]
   .for-each ([c, name]) ->
     "#{c}a"      `to` [name, \a]              <| "#name'd atom"
     "#c\"a\""    `to` [name, new String \a]   <| "#name'd string"
@@ -64,7 +166,7 @@ to = (input, output, description) -->
     "(#{c}a)"    `to` [[name, \a]]            <| "#name'd atom in a list"
     "(a #c b)"   `to` [\a [name, \b]]         <| "whitespaced #name"
     "(a #c#c b)" `to` [\a [name, [name, \b]]] <| "consecutive #{name}s nest"
-    "(a#{c}b)"   `to` [\a [name, \b]]         <| "#{name} acts as delimiter"
+    "(a#{c}b)"   `to` [\a [name, \b]]         <| "#name acts as delimiter"
 
     test "#name with nothing to apply to is an error" ->
       (-> parse "(#c)") `@throws` sexpr.SyntaxError
@@ -80,7 +182,7 @@ char-escape = ->
   | \\r => "\\r"
   | _   => it
 
-[ \' \` \" \; \\ " " '"' "\n" "\t" ] .for-each (c) ->
+[ "'" '`' '"' ';' '\\' " " '"' "\n" "\t" ] .for-each (c) ->
   "a\\#{c}b" `to` "a#{c}b"
     <| "escaped #{char-escape c} in an atom should parse"
 
@@ -220,7 +322,7 @@ test "2-element list content loc is correct" ->
             ..column `@equals` 5
 
 test "quote atom loc matches that of the quote character" ->
-  [ [\' \quote] [\` \quasiquote] [\, \unquote] [\,@ \unquote-splicing] ]
+  [ <[' quote]> <[` quasiquote]> <[, unquote]> <[,@ unquote-splicing]> ]
     .for-each ([c, name]) ~>
       parse "#{c}a"
         ..type `@equals` \list
@@ -241,12 +343,13 @@ test "quote atom loc matches that of the quote character" ->
 # Form errors
 #
 
-test "stuff after the end is an error" ->
-  [ "()" "a" ")" ].for-each ~> (-> parse "()#it") `@throws` sexpr.SyntaxError
+test "closing parenthesis after the end is an error" ->
+  (-> parse "()()") `@throws` sexpr.SyntaxError
+  (-> parse "()a") `@throws` sexpr.SyntaxError
+  (-> parse "())") `@throws` sexpr.SyntaxError
 
 test "incomplete string is an error" ->
   (-> parse '"a') `@throws` sexpr.SyntaxError
 
 test "incomplete form due to comment is an error" ->
   (-> parse '(a;)') `@throws` sexpr.SyntaxError
-

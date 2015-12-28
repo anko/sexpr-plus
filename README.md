@@ -14,7 +14,8 @@ Outputs objects, or null for empty input.
     ``, `,` and `,@`.  They're turned into the appropriate atoms.
 -   Comments are from `;` til end of line.  They are not present in the output.
 
-Forked from the more minimal [fwg/s-expression][4].
+Initially forked from the more minimal [fwg/s-expression][4], but then rewritten
+in PEG.js and again in LiveScript.
 
 ## Node locations
 
@@ -37,14 +38,22 @@ messages.
     npm i sexpr-plus
 
 ```js
-var parse = require("sexpr-plus").parse;
+var sexpr = require("sexpr-plus")
 ```
 
-Call `parse` with a string containing code to parse.
+Call `sexpr.parse` with a string containing code to parse. If the string fails
+to parse, a `sexpr.SyntaxError` (an `Error` subclass) is thrown with the
+following properties:
 
-If you need to catch and distinguish between different types of `Error` with
-`instanceof` while parsing, the syntax error prototype is available at
-`require("sexpr-plus").SyntaxError`.
+-   `expected` - The expected token, if applicable.
+-   `found` - The found token.
+-   `location` - The location the error occurred, in the above format (`offset`,
+    `line`, and `column`).
+-   `message` - The error message.
+-   `name` - `"SyntaxError"`
+
+If `Error.captureStackTrace` is available, that is used to record a stack trace
+to a `stack` property on the instance. This includes in V8-based runtimes.
 
 ## License
 
