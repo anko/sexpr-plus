@@ -3,7 +3,7 @@
 Recursive descent parser for S-expressions, with features useful for writing an
 S-expr-based programming language.  Written for [eslisp][3], but generalisable.
 
-Outputs objects, or null for empty input.
+Outputs an array containing objects representing parsed forms:
 
 -   Lists are parsed to `{ type: "list", content: [ <other objects>... ] }`.
 -   Atoms are parsed to `{ type: "atom", content: "<atomName>" }`.
@@ -13,6 +13,8 @@ Outputs objects, or null for empty input.
 -   Supports quote, quasiquote, unquote and unquote-splicing, with `'`, `` `
     ``, `,` and `,@`.  They're turned into the appropriate atoms.
 -   Comments are from `;` til end of line.  They are not present in the output.
+
+Empty inputs or inputs containing only comments produce an empty array.
 
 Initially forked from the more minimal [fwg/s-expression][4], but then rewritten
 in PEG.js and again in LiveScript.

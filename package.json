@@ -1,6 +1,6 @@
 {
   "name": "sexpr-plus",
-  "version": "6.1.0",
+  "version": "7.0.0",
   "description": "S-expression parser, with quoting and comments",
   "main": "index.js",
   "scripts": {
