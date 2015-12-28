@@ -78,11 +78,11 @@ export parse = (source) ->
 
     move = -> column++; index++
 
-    isWhitespace = -> current! in ['\r', '\n', '\u2028', '\u2029']
+    isNewline = -> current! in ['\r', '\n', '\u2028', '\u2029']
 
     next = ->
         expectNext!
-        if isWhitespace!
+        if isNewline!
             skipNewline!
             '\n'
         else
@@ -100,7 +100,7 @@ export parse = (source) ->
 
     skipWhitespace = ->
         while hasNext!
-            if isWhitespace!
+            if isNewline!
                 skipNewline!
             else if current! in [' ', '\t']
                 move!
@@ -142,16 +142,17 @@ export parse = (source) ->
     parseUnicodeEscape = ->
         if current! == '{'
             expect '{'
-            # The largest Unicode point is U+10FFF, which has 5 hex digits. Any
+            # The largest Unicode point is U+10FFFF, which has 5 hex digits. Any
             # more here is rejected. A minimum of one digit is required.
             code = hex!
             i = 0
-            while current! != '}' and i < 4, i++ => code = code .<<. 4 .|. hex!
+            while current! != '}' and i < 5, i++ => code = code .<<. 4 .|. hex!
             expect '}'
         else
             code = hex! .<<. 12 .|. hex! .<<. 8 .|. hex! .<<. 4 .|. hex!
 
-        if code > 0x10fff
+        if code > 0x10ffff
+            code .= to-string 16
             fail "Unicode point too large: #code", void, "#code"
         else if code > 0xffff
             # https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
@@ -201,5 +202,9 @@ export parse = (source) ->
             | '"'  => parseString!
             | _    => parseAtom!
 
-    unless skipWhitespace! then null else
-        do parseExpr >> pipe unexpectedIf skipWhitespace
+    # Ignore any shebang at beginning.
+    if source.0 == '#' and source.1 == '!'
+        while hasNext! and not isNewline! => index++
+        skipNewline! if hasNext!
+
+    while skipWhitespace! => parseExpr!

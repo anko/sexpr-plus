@@ -73,7 +73,7 @@ test 'ascii escapes work with atoms' ->
   esc = (x, y) ~>
     @deep-equals do
       (delete-location-data parse x)
-      {type : \atom content : String.from-char-code y}
+      [{type : \atom content : String.from-char-code y}]
       "`#x`"
 
   '\\x00' `esc` 0
@@ -89,7 +89,7 @@ test 'unicode escapes work with atoms' ->
   esc = (x, y) ~>
     @deep-equals do
       (delete-location-data parse x)
-      {type : \atom content : String.from-char-code y}
+      [{type : \atom content : String.from-char-code y}]
       "`#x`"
 
   '\\u0000' `esc` 0
@@ -109,7 +109,7 @@ test 'ascii escapes work with strings' ->
   esc = (x, y) ~>
     @deep-equals do
       (delete-location-data parse "\"#x\"")
-      {type : \string content : String.from-char-code y}
+      [{type : \string content : String.from-char-code y}]
       "`\"#x\"`"
 
   '\\x00' `esc` 0
@@ -125,7 +125,7 @@ test 'unicode escapes work with strings' ->
   esc = (x, y) ~>
     @deep-equals do
       (delete-location-data parse "\"#x\"")
-      {type : \string content : String.from-char-code y}
+      [{type : \string content : String.from-char-code y}]
       "`\"#x\"`"
 
   '\\u0000' `esc` 0
@@ -141,11 +141,11 @@ test 'unicode escapes work with strings' ->
     "\\ufff#{l}" `esc` (0xfff0 + c)
     "\\uFFF#{l}" `esc` (0xFFF0 + c)
 
-test 'Unicode brace escapes work with strings' ->
-  esc = (x, y) ~>
+test 'unicode brace escapes work with strings' ->
+  esc = (x, ...ys) ~>
     @deep-equals do
       (delete-location-data parse "\"#x\"")
-      {type : \string content : String.from-char-code y}
+      [{type : \string content : String.from-char-code ...ys}]
       "`\"#x\"`"
 
   '\\u0000' `esc` 0
@@ -167,6 +167,8 @@ test 'Unicode brace escapes work with strings' ->
     "\\u{111#{l}}" `esc` (0x1110 + c)
     "\\u{fff#{l}}" `esc` (0xfff0 + c)
     "\\u{FFF#{l}}" `esc` (0xFFF0 + c)
+
+  esc "\\u{1d306}", 0xD834, 0xDF06
 
 #
 # Quoting operators
@@ -198,7 +200,7 @@ char-escape = ->
   | _   => it
 
 [ "'" '`' '"' ';' '\\' " " '"' "\n" "\t" ] .for-each (c) ->
-  "a\\#{c}b" `to` "a#{c}b"
+  "a\\#{c}b" `to` [ "a#{c}b" ]
     <| "escaped #{char-escape c} in an atom should parse"
 
 [ '"' '\\' ] .for-each (c) ->
