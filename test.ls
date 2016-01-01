@@ -116,6 +116,7 @@ test "special characters work" ->
 #
 
 ";hi" `to` []                <| "only 1 comment"
+";hi\na" `to` [ "a" ]        <| "comment, then atom"
 ";hi\n;yo" `to` []           <| "only comments"
 "(\n; a\n;b\n\n)" `to` [[]]  <| "empty list with comments inside"
 "();hi" `to` [[]]            <| "comment immediately following list"
@@ -128,6 +129,7 @@ test "special characters work" ->
 # Location information
 #
 
+/*
 test "lone atom loc is correct" ->
   parse "hi"
     (typeof! ..) `@equals` \Array
