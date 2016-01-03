@@ -2,11 +2,11 @@
 var Parsimmon = require("parsimmon");
 var regex = Parsimmon.regex;
 var string = Parsimmon.string;
-var whitespace = Parsimmon.whitespace;
 var lazy = Parsimmon.lazy;
 var seq = Parsimmon.seq;
 var alt = Parsimmon.alt;
 var eof = Parsimmon.eof;
+var succeed = Parsimmon.succeed;
 
 var toStringNode = function(node) {
   return {
@@ -42,14 +42,27 @@ var toListNode = function(node) {
   };
 };
 
-var endOfLineComment = regex(/;[^\n]*/).skip(alt(string("\n"), eof))
+var openParenChar = string("(");
+var closeParenChar = string(")");
+var commentChar = string(";");
+var escapeChar = string('\\');
+var stringDelimiterChar = string('"');
+var quoteChar = string("'");
+var quasiquoteChar = string("`");
+var unquoteChar = string(",");
+var unquoteSplicingModifierChar = string("@");
+var whitespaceChar = regex(/\s/);
+var whitespace = whitespaceChar.atLeast(1);
+
+var endOfLineComment = commentChar
+  .then(regex(/[^\n]*/))
+  .skip(alt(string("\n"), eof))
   .desc("end-of-line comment");
 
 var optWhitespace = alt(endOfLineComment, whitespace).many();
-
 var lexeme = function(p) { return p.skip(optWhitespace); };
 
-var escapedSpecialChar = string('\\')
+var singleCharEscape = escapeChar
   .then(alt(
         string("b"),
         string("f"),
@@ -57,7 +70,8 @@ var escapedSpecialChar = string('\\')
         string("r"),
         string("t"),
         string("v"),
-        string("0")))
+        string("0"),
+        escapeChar))
   .map(function(c) {
     switch (c) {
       case "b": return "\b";
@@ -67,83 +81,194 @@ var escapedSpecialChar = string('\\')
       case "t": return "\t";
       case "v": return "\v";
       case "0": return "\0";
+      default : return c;
     }
   });
-var stringDelimiter = string('"');
 
-var stringLiteral = lexeme((function() {
-    var escapedChar = string("\\").then(regex(/["\\]/));
-    var normalChar = regex(/[^"\\]/);
-    return stringDelimiter.desc("string-opener")
-        .then(
-            alt(normalChar, escapedChar, escapedSpecialChar)
-            .desc("string content").many())
-        .skip(stringDelimiter.desc("string-terminator"))
-        .mark()
-        .map(toStringNode);
-})());
 
-var atom = lexeme((function() {
-    var escapedChar = string('\\').then(regex(/[;"'`,\\()\n\t\r ]/));
-    var normalChar = regex(/[^;"'`,\\()\n\t\r ]/);
-    return alt(normalChar, escapedChar).atLeast(1).mark()
-        .map(toAtomNode).desc("atom");
-})());
+var charNot = function() {
 
-var lparen = lexeme(string('(')).desc("opening paren");
-var rparen = lexeme(string(')')).desc("closing paren");
-var expr = lazy("sexpr", function() { return alt(list, atom, stringLiteral, quotedExpr); });
+  var args = [].slice.call(arguments);
 
-var quoteMap = {
-    '\'' : 'quote',
-    '`'  : 'quasiquote',
-    ','  : 'unquote',
-    ',@' : 'unquote-splicing'
-};
-var quote  = lexeme(regex(/('|`|,@|,)/)).desc("a quotation operator")
-  .map(function(d) { return quoteMap[d]; })
-  .mark()
-  .map(toAtomNode);
-var quotedExpr = quote.chain(function(quoteResult) {
+  return Parsimmon.custom(function(success, failure) {
+    return function(stream, i) {
 
-  return expr.mark().map(function(exprResult) {
+      var someParserMatches = args.some(function(p) {
+        return p._(stream, i).status;
+      });
 
-    var node = {
-      value : [ quoteResult, exprResult.value ],
-      start : quoteResult.start,
-      end : exprResult.end
+      //console.log(someParserMatches, stream, i);
+
+      if ((! someParserMatches) && (i < stream.length)) {
+        return success(i+1, stream.charAt(i));
+      } else {
+        return failure(i, "anything that doesn't match " + args);
+      }
     };
-
-    return toListNode(node);
   });
+};
 
-}).desc("a quoted form");
+var stringParser = (function() {
 
-var list = lparen.then(expr.many()).skip(rparen).mark().map(toListNode);
+  var delimiter = stringDelimiterChar;
+
+  var escapedDelimiter = escapeChar.then(delimiter);
+  var escapedChar = alt(escapedDelimiter, singleCharEscape);
+
+  var normalChar = charNot(delimiter, escapeChar);
+
+  var character = alt(normalChar, escapedChar);
+
+  var content = character.many().desc("string content");
+
+  var main = lexeme(
+    (delimiter.desc("string-opener"))
+      .then(content)
+      .skip(delimiter.desc("string-terminator"))
+      .mark()
+      .map(toStringNode)
+      .desc("string literal")
+  );
+
+  return {
+    main : main,
+    sub : {
+      delimiter : delimiter,
+      escapedDelimiter : escapedDelimiter,
+      escapedCharacter : escapedChar,
+      normalCharacter : normalChar,
+      anyCharacter : character,
+      content : content
+    }
+  };
+})();
+
+var atomParser = (function() {
+
+  var needEscape = [
+    commentChar,
+    stringDelimiterChar,
+    quoteChar,
+    quasiquoteChar,
+    unquoteChar,
+    escapeChar,
+    openParenChar,
+    closeParenChar,
+    whitespaceChar
+  ];
+  var charNeedingEscape = alt.apply(null, needEscape);
+  var escapedChar = escapeChar.then(charNeedingEscape);
+  var normalChar = charNot.apply(null, needEscape);
+
+  var character = alt(escapedChar, normalChar);
+
+  var main = lexeme(
+    character.atLeast(1)
+      .mark()
+      .map(toAtomNode)
+      .desc("atom")
+  );
+  return {
+    main : main,
+    sub : {
+      charNeedingEscape : charNeedingEscape,
+      escapedCharacter : escapedChar,
+      normalCharacter : normalChar,
+      anyCharacter : character
+    }
+  };
+})();
+
+var listOpener = lexeme(openParenChar).desc("opening paren");
+var listTerminator = lexeme(closeParenChar).desc("closing paren");
+
+var expression = lazy("expression", function() {
+  return alt(
+    list,
+    atomParser.main,
+    stringParser.main,
+    quotedExpressionParser.main
+  );
+});
+
+var listContent = expression.many().desc("list content");
+var list = listOpener.then(listContent).skip(listTerminator)
+  .mark()
+  .map(toListNode);
+
+var quotedExpressionParser = (function () {
+  var quote = quoteChar
+    .then(succeed("quote"))
+    .mark().map(toAtomNode);
+  var quasiquote = quasiquoteChar
+    .then(succeed("quasiquote"))
+    .mark().map(toAtomNode);
+  var unquote = unquoteChar
+    .then(succeed("unquote"))
+    .mark().map(toAtomNode);
+  var unquoteSplicing = unquoteChar.then(unquoteSplicingModifierChar)
+    .then(succeed("unquote-splicing"))
+    .mark().map(toAtomNode);
+
+  var anyQuote = alt(quote, quasiquote, unquoteSplicing, unquote);
+
+  var main = lexeme(anyQuote).chain(function(quoteResult) {
+    return expression.mark().map(function(exprResult) {
+
+      var node = {
+        value : [ quoteResult, exprResult.value ],
+        start : quoteResult.start,
+        end : exprResult.end
+      };
+
+      return toListNode(node);
+    });
+  }).desc("quoted expression");
+
+  return {
+    main : main,
+    sub : {
+      quote,
+      quasiquote,
+      unquote,
+      unquoteSplicing,
+      anyQuote
+    }
+  };
+})();
 
 var shebangLine = regex(/^#![^\n]*/).skip(alt(string("\n"), eof)).desc("shebang line");
 
-var parse = function(stream) {
-    //var s = optWhitespace.then(expr.or(optWhitespace)).parse(stream);
-    var s = shebangLine.atMost(1)
-      .then(optWhitespace).then(expr.many()).parse(stream);
-    if (s.status) return s.value;
-    else {
+var main = shebangLine.atMost(1)
+  .then(optWhitespace)
+  .then(expression.many());
 
-        var streamSoFar = stream.slice(0, s.index);
-        var line = 1 + (streamSoFar.match(/\n/g) || []).length; // Count '\n's
-        var col = streamSoFar.length - streamSoFar.lastIndexOf("\n");
-
-        var e = new Error("Syntax error at position " + s.index + ": " +
-                          "(expected " + s.expected.join(" or ") + ")");
-        if (s.expected.indexOf("string-terminator") >= 0)
-            e.message = "Syntax error: Unterminated string literal";
-        e.line = line;
-        e.col = col;
-        throw e;
-    }
-};
 module.exports = {
-  parse : parse,
-  SyntaxError : Error
+  main : main,
+  sub : {
+    basic : {
+      openParenChar : openParenChar,
+      closeParenChar : closeParenChar,
+      commentChar : commentChar,
+      escapeChar : escapeChar,
+      stringDelimiterChar : stringDelimiterChar,
+      quoteChar : quoteChar,
+      quasiquoteChar : quasiquoteChar,
+      unquoteChar : unquoteChar,
+      unquoteSplicingModifierChar : unquoteSplicingModifierChar,
+      whitespaceChar : whitespaceChar,
+      whitespace : whitespace,
+      endOfLineComment : endOfLineComment,
+      shebangLine : shebangLine,
+      listOpener : listOpener,
+      listTerminator : listTerminator,
+      singleCharEscape : singleCharEscape,
+      expression : expression,
+    },
+    composite : {
+      atom : atomParser,
+      string : stringParser,
+      quotedExpression : quotedExpressionParser,
+    }
+  }
 }

@@ -1,5 +1,8 @@
 sexpr = require \./index.js
-{ parse } = sexpr
+parse = ->
+  s = sexpr.main.parse it
+  if s.status then s.value
+  else throw Error!
 
 test = (name, func) ->
   (require \tape) name, (t) ->
