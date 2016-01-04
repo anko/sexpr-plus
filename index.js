@@ -42,6 +42,8 @@ var toListNode = function(node) {
   };
 };
 
+var construct = function() {
+
 var openParenChar = string("(");
 var closeParenChar = string(")");
 var commentChar = string(";");
@@ -243,8 +245,14 @@ var main = shebangLine.atMost(1)
   .then(optWhitespace)
   .then(expression.many());
 
-module.exports = {
+var replace = function(parserToReplace, parserWithNewBehaviour) {
+  parserToReplace._ = parserWithNewBehaviour._;
+};
+
+return {
   main : main,
+  replace : replace,
+  parsimmon : Parsimmon,
   sub : {
     basic : {
       openParenChar : openParenChar,
@@ -260,8 +268,10 @@ module.exports = {
       whitespace : whitespace,
       endOfLineComment : endOfLineComment,
       shebangLine : shebangLine,
+      list : list,
       listOpener : listOpener,
       listTerminator : listTerminator,
+      listContent : listContent,
       singleCharEscape : singleCharEscape,
       expression : expression,
     },
@@ -271,4 +281,8 @@ module.exports = {
       quotedExpression : quotedExpressionParser,
     }
   }
-}
+};
+
+}; // end of constructor
+
+module.exports = construct;

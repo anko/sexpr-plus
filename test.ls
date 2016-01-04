@@ -1,6 +1,15 @@
 sexpr = require \./index.js
-parse = ->
-  s = sexpr.main.parse it
+parse = do
+  parser = sexpr!
+  ->
+    s = parser.main.parse it
+    if s.status then s.value
+    else throw Error!
+
+parse-with-modifications = (transformer, input) -->
+  parser = sexpr!
+  transformer.call null parser
+  s = parser.main.parse input
   if s.status then s.value
   else throw Error!
 
@@ -42,6 +51,16 @@ to = (input, output, description) -->
   test description, ->
     input
     |> parse
+    |> delete-location-data
+    |> @deep-equals _, output
+
+test-with-modifications = (description, input, output, transformer) ->
+  output = convert-toplevel output
+  console.log "E" output
+
+  test description, ->
+    input
+    |> parse-with-modifications transformer
     |> delete-location-data
     |> @deep-equals _, output
 
@@ -127,6 +146,21 @@ test "special characters work" ->
 ";(a comment)" `to` []       <| "comment looking like a form"
 "(a ;)\nb)" `to` [ [\a \b] ] <| "form with close-paren-looking comment between"
 '("a ;)"\n)' `to` [[new String "a ;)"]] <| "can't start comment in string"
+
+#
+# Modifications
+#
+test-with-modifications do
+  "Transformer can change paren style"
+  "[a b c]"
+  [ [ \a \b \c ] ]
+  (p) ->
+    p.replace do
+      p.sub.basic.openParenChar
+      p.parsimmon.string \[
+    p.replace do
+      p.sub.basic.closeParenChar
+      p.parsimmon.string \]
 
 #
 # Location information
