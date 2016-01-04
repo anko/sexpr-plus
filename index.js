@@ -160,7 +160,7 @@ var atomParser = (function() {
   ];
   var charNeedingEscape = alt.apply(null, needEscape);
   var escapedChar = escapeChar.then(charNeedingEscape);
-  var normalChar = charNot.apply(null, needEscape);
+  var normalChar = charNot(charNeedingEscape);
 
   var character = alt(escapedChar, normalChar);
 
@@ -248,13 +248,20 @@ var main = shebangLine.atMost(1)
 var replace = function(parserToReplace, parserWithNewBehaviour) {
   parserToReplace._ = parserWithNewBehaviour._;
 };
+var clone = function(parserToClone) {
+  return Parsimmon.custom(function(success, failure) {
+    return parserToClone._;
+  });
+};
 
 return {
   main : main,
   replace : replace,
+  clone : clone,
   parsimmon : Parsimmon,
   sub : {
     basic : {
+      lexeme : lexeme,
       openParenChar : openParenChar,
       closeParenChar : closeParenChar,
       commentChar : commentChar,

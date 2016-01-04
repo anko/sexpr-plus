@@ -4,14 +4,14 @@ parse = do
   ->
     s = parser.main.parse it
     if s.status then s.value
-    else throw Error!
+    else throw Error "Parse error: expected #{s.expected} at #{s.index}"
 
 parse-with-modifications = (transformer, input) -->
   parser = sexpr!
   transformer.call null parser
   s = parser.main.parse input
   if s.status then s.value
-  else throw Error!
+  else throw Error "Parse error at offset #{s.index}: expected #{s.expected}"
 
 test = (name, func) ->
   (require \tape) name, (t) ->
@@ -160,6 +160,71 @@ test-with-modifications do
     p.replace do
       p.sub.basic.closeParenChar
       p.parsimmon.string \]
+
+test-with-modifications do
+  "Transformer can reverse atoms"
+  "olleh ereht"
+  [ \hello \there ]
+  (p) ->
+    p.replace do
+      p.sub.composite.atom.main
+      p.clone p.sub.composite.atom.main .map ->
+        it.content .= split "" .reverse! .join ""
+        return it
+
+test-with-modifications do
+  "Transformer can add alternative way of writing atom"
+  "$a b"
+  [ \a \b ]
+  (p) ->
+
+    dollar-then-atom = p.parsimmon.string \$
+      .then p.clone p.sub.composite.atom.main
+
+    p.replace do
+      p.sub.composite.atom.main
+      p.parsimmon.alt do
+        dollar-then-atom
+        p.clone p.sub.composite.atom.main
+
+test-with-modifications do
+  "Transformer can introduce alternative parsing rules"
+  "[a b c]"
+  [ [ \array \a \b \c ] ]
+  (p) ->
+
+    string = p.parsimmon.string
+    array-opener = p.sub.basic.lexeme (string \[)
+    array-terminator = p.sub.basic.lexeme (string \])
+    square-brackets-array-parser = array-opener
+      .then p.sub.basic.list-content
+      .skip array-terminator
+      .mark!
+      .map ->
+        it.value.unshift {
+          type : \atom
+          content : \array
+          location :
+            start : it.start
+            end : it.start
+        }
+        type : \list
+        content : it.value
+        location :
+          start : it.start
+          end  : it.end
+    p.replace do
+      p.sub.composite.atom.sub.charNeedingEscape
+      p.parsimmon.alt do
+        string \[
+        string \]
+        p.clone p.sub.composite.atom.sub.charNeedingEscape
+
+    p.replace do
+      p.sub.basic.expression
+      p.parsimmon.alt do
+        square-brackets-array-parser
+        p.clone p.sub.basic.expression
 
 #
 # Location information
