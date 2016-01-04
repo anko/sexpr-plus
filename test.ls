@@ -56,7 +56,6 @@ to = (input, output, description) -->
 
 test-with-modifications = (description, input, output, transformer) ->
   output = convert-toplevel output
-  console.log "E" output
 
   test description, ->
     input
