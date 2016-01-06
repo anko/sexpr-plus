@@ -3,7 +3,7 @@ export PATH := node_modules/.bin:$(PATH)
 index.js: parser.ls
 	lsc -cp $< > $@
 
-test: index.js test.ls
+test:
 	lsc test.ls
 
 clean:
