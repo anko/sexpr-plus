@@ -8,15 +8,21 @@ Outputs an array containing objects representing parsed forms:
 -   Lists are parsed to `{ type: "list", content: [ <other objects>... ] }`.
 -   Atoms are parsed to `{ type: "atom", content: "<atomName>" }`.
 -   Strings (delimited with `"`s) are parsed to `{ type: "string", content:
-    "<atomName>" }`.  They support the same escape sequences as JavaScript
-    strings: `\"`, `\\`, `\n`, `\r`, `\t`, `\f`, and `\b`.
+    "<atomName>" }`.  They support all the escape sequences ECMAScript 6 strings
+    can take, including `\"`, `\\`, `\n`, `\r`, `\t`, `\f`, `\b`, `\0`, ASCII
+    escapes like `\x3c`, and Unicode escapes like `\uD801` or `\u{1D306}`. The
+    hex digits for `\xNN`, `\uNNNN`, and `\u{N}` are case-insensitive.
+    Any other escaped character just returns itself.
+-   Atoms can also have characters within them escaped, and have all the same
+    escape sequences as strings.
 -   Supports quote, quasiquote, unquote and unquote-splicing, with `'`, `` `
     ``, `,` and `,@`.  They're turned into the appropriate atoms.
 -   Comments are from `;` til end of line.  They are not present in the output.
 
-Empty inputs or inputs containing only comments produce an empty array.
+Inputs containing only comments and/or whitespace produce an empty array.
 
-Forked from the more minimal [fwg/s-expression][4].
+Initially forked from the more minimal [fwg/s-expression][4], but then rewritten
+in PEG.js and again in LiveScript.
 
 ## Node locations
 
@@ -39,14 +45,22 @@ messages.
     npm i sexpr-plus
 
 ```js
-var parse = require("sexpr-plus").parse;
+var sexpr = require("sexpr-plus")
 ```
 
-Call `parse` with a string containing code to parse.
+Call `sexpr.parse` with a string containing code to parse. If the string fails
+to parse, a `sexpr.SyntaxError` (an `Error` subclass) is thrown with the
+following properties:
 
-If you need to catch and distinguish between different types of `Error` with
-`instanceof` while parsing, the syntax error prototype is available at
-`require("sexpr-plus").SyntaxError`.
+-   `expected` - The expected token, if applicable.
+-   `found` - The found token.
+-   `location` - The location the error occurred, in the above format (`offset`,
+    `line`, and `column`).
+-   `message` - The error message.
+-   `name` - `"SyntaxError"`
+
+If `Error.captureStackTrace` is available (like in Node), that is used to add a
+stack trace to a `stack` property on the instance.
 
 ## License
 
