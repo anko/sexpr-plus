@@ -154,9 +154,14 @@ test-with-modifications do
   "[a b c]"
   [ [ \a \b \c ] ]
   (p) ->
+
+    # Replace the parsers for the open and close paren characters with
+    # different ones, so lists are written as [ ... ] instead of ( ... ).
+
     p.replace do
       p.sub.basic.openParenChar
       p.parsimmon.string \[
+
     p.replace do
       p.sub.basic.closeParenChar
       p.parsimmon.string \]
@@ -166,6 +171,10 @@ test-with-modifications do
   "olleh ereht"
   [ \hello \there ]
   (p) ->
+
+    # Replace the atom parser with a clone of the same parser except with
+    # content mapped through a string-reverse, so atoms are read backwards.
+
     p.replace do
       p.sub.composite.atom.main
       p.clone p.sub.composite.atom.main .map ->
@@ -178,6 +187,9 @@ test-with-modifications do
   [ \a \b ]
   (p) ->
 
+    # Add an alternative to the atom parser where atoms may optionally be
+    # prepended by an ignored dollar sign.
+
     dollar-then-atom = p.parsimmon.string \$
       .then p.clone p.sub.composite.atom.main
 
@@ -189,9 +201,15 @@ test-with-modifications do
 
 test-with-modifications do
   "Transformer can introduce alternative parsing rules"
-  "[a b c]"
-  [ [ \array \a \b \c ] ]
+  '(f [a b c xyz\\[\\]])'
+  [ [ \f [ \array \a \b \c 'xyz[]' ] ] ]
   (p) ->
+
+    # Add a parser that parses [ ... ] into (array ...).
+
+    # First we create the necessary parser, mapping every result through a
+    # function that prepends the "array" atom to each of the parsed lists'
+    # contents.
 
     string = p.parsimmon.string
     array-opener = p.sub.basic.lexeme (string \[)
@@ -213,18 +231,25 @@ test-with-modifications do
         location :
           start : it.start
           end  : it.end
-    p.replace do
-      p.sub.composite.atom.sub.charNeedingEscape
-      p.parsimmon.alt do
-        string \[
-        string \]
-        p.clone p.sub.composite.atom.sub.charNeedingEscape
+
+    # Register that as an alternative for expressions.
 
     p.replace do
       p.sub.basic.expression
       p.parsimmon.alt do
         square-brackets-array-parser
         p.clone p.sub.basic.expression
+
+    # So we don't lose the ability to use "[" and "]" in atoms, we also have to
+    # add the two as alternatives to the parser of characters that need to be
+    # escaped there.
+
+    p.replace do
+      p.sub.composite.atom.sub.charNeedingEscape
+      p.parsimmon.alt do
+        string \[
+        string \]
+        p.clone p.sub.composite.atom.sub.charNeedingEscape
 
 #
 # Location information

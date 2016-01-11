@@ -184,19 +184,20 @@ var atomParser = (function() {
 var listOpener = lexeme(openParenChar).desc("opening paren");
 var listTerminator = lexeme(closeParenChar).desc("closing paren");
 
-var expression = lazy("expression", function() {
-  return alt(
-    list,
-    atomParser.main,
-    stringParser.main,
-    quotedExpressionParser.main
-  );
-});
+var listParserLater = Parsimmon.custom(function() {});
+var quotedExpressionParserLater = Parsimmon.custom(function() {});
+var expression = alt(
+  listParserLater,
+  atomParser.main,
+  stringParser.main,
+  quotedExpressionParserLater
+);
 
 var listContent = expression.many().desc("list content");
 var list = listOpener.then(listContent).skip(listTerminator)
   .mark()
   .map(toListNode);
+listParserLater._ = list._;
 
 var quotedExpressionParser = (function () {
   var quote = quoteChar
@@ -226,6 +227,8 @@ var quotedExpressionParser = (function () {
       return toListNode(node);
     });
   }).desc("quoted expression");
+
+  quotedExpressionParserLater._ = main._;
 
   return {
     main : main,
