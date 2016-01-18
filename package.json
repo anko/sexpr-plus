@@ -22,7 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "parsimmon": "^0.7.0"
+    "parsimmon": "0.7.0"
   },
   "devDependencies": {
     "LiveScript": "^1.3.1",
