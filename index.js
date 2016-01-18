@@ -266,11 +266,11 @@ var quotedExpressionParser = (function () {
   return {
     main : main,
     sub : {
-      quote,
-      quasiquote,
-      unquote,
-      unquoteSplicing,
-      anyQuote
+      quote : quote,
+      quasiquote : quasiquote,
+      unquote : unquote,
+      unquoteSplicing : unquoteSplicing,
+      anyQuote : anyQuote
     }
   };
 })();
