@@ -8,6 +8,39 @@ var alt = Parsimmon.alt;
 var eof = Parsimmon.eof;
 var succeed = Parsimmon.succeed;
 
+// The contents of this IIFE monkey-patch the Parsimmon's parser prototype's
+// `.mark` method to support line and column locations.  When
+// https://github.com/jneen/parsimmon/pull/56 (or something like it) is merged
+// upstream, this can go.
+(function() {
+
+  var indexLC = Parsimmon.custom(function(success, failure) {
+    return function(stream, i) {
+      // Like `index` above, but emitting an object that contains line and
+      // column indices in addition to the character-based one.
+
+      var lines = stream.slice(0, i).split("\n");
+
+      // Unlike the character offset, lines and columns are 1-based.
+      var lineWeAreUpTo = lines.length;
+      var columnWeAreUpTo = lines[lines.length - 1].length + 1;
+
+      return success(i, {
+        offset: i,
+        line: lineWeAreUpTo,
+        column: columnWeAreUpTo
+      });
+    };
+  });
+
+  Parsimmon.Parser.prototype.mark = function() {
+    return Parsimmon.seqMap(indexLC, this, indexLC, function(start, value, end) {
+      return { start: start, value: value, end: end };
+    });
+  };
+
+})(); // End of monkey patch
+
 var toStringNode = function(node) {
   return {
     type : "string",

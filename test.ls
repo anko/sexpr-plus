@@ -255,7 +255,6 @@ test-with-modifications do
 # Location information
 #
 
-/*
 test "lone atom loc is correct" ->
   parse "hi"
     (typeof! ..) `@equals` \Array
