@@ -251,6 +251,34 @@ test-with-modifications do
         string \]
         p.clone p.sub.composite.atom.sub.charNeedingEscape
 
+test-with-modifications do
+  "Transformer can add ASCII char escape type to strings"
+  '"\\t\\x20"' # "\x20" is an ASCII hex escape for the space character
+  [ (new String "\t ") ]
+  (p) ->
+
+    ascii-escape =
+      p.sub.basic.escape-char             # Expect to see the escape character
+                                          # ("\" unless another transformer has
+                                          # changed it)
+      .then p.parsimmon.string \x         # ... then an "x"
+      .then p.parsimmon.regex /[0-9a-f]+/ # ... then a char code in hex
+      .map ->
+        # The string parser expects its sub-parsers to return strings, so we
+        # turn the hex code into the corresponding real character.
+        it
+        |> parseInt _, 16
+        |> String.from-char-code
+
+    # We then replace the string parser's "escapedCharacter" sub-parser with an
+    # "alt" (alternative) between our new kind of escaped-character parser and
+    # itself.
+    p.replace do
+      p.sub.composite.string.sub.escaped-character
+      p.parsimmon.alt do
+        ascii-escape
+        p.clone p.sub.composite.string.sub.escaped-character
+
 #
 # Location information
 #
