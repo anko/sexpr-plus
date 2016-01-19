@@ -4,8 +4,7 @@
   "description": "S-expression parser, with quoting and comments",
   "main": "index.js",
   "scripts": {
-    "test": "make test",
-    "prepublish": "make"
+    "test": "make test"
   },
   "files": [
     "index.js"
@@ -22,10 +21,11 @@
     "parser"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "parsimmon": "0.7.0"
+  },
   "devDependencies": {
     "LiveScript": "^1.3.1",
-    "tape": "^4.0.0",
-    "pegjs": "^0.9.0"
+    "tape": "^4.0.0"
   }
 }
